@@ -1,10 +1,12 @@
 import svgwrite
 from svgwrite import shapes
 from Orbit import Orbit
+from Orbit import solar_system_orbits
 
 image_size = 600
 image_center = (image_size / 2, image_size / 2)
 orbit_stroke_width = 3
+scale = 1 / 1_000_000
 
 
 def get_orbit_ellipse_simple(perihelion, aphelion, semimajor_axis):
@@ -16,9 +18,10 @@ def get_orbit_ellipse_simple(perihelion, aphelion, semimajor_axis):
 
 
 def get_orbit_ellipse(orbit_object: Orbit):
-    perihelion = orbit_object.get_periapsis()
-    orbit_center = (image_center[0] + orbit_object.semimajor_axis - perihelion), image_center[1]
-    orbit = svgwrite.shapes.Ellipse(orbit_center, (orbit_object.get_apoapsis(), perihelion))
+    orbit_center = ((image_center[0] + (orbit_object.semimajor_axis - orbit_object.get_periapsis()) * scale),
+                    image_center[1])
+    orbit = svgwrite.shapes.Ellipse(orbit_center,
+                                    (orbit_object.get_apoapsis() * scale, orbit_object.get_periapsis() * scale))
     orbit.fill('none')
     orbit.stroke('rgb(190, 190, 190)', orbit_stroke_width)
     orbit.rotate(orbit_object.longitude_of_the_ascending_node, image_center)
@@ -37,32 +40,9 @@ if __name__ == '__main__':
     sun_shape.fill('yellow')
     svg_doc.add(sun_shape)
 
-    mercury_orbit = Orbit("mercury", 0.205630, 57_909_050, 3.38, 48.331, 29.124, 0)
-    print(mercury_orbit)
-    mercury_orbit_drawing = get_orbit_ellipse(mercury_orbit)
-    svg_doc.add(mercury_orbit_drawing)
-
-    venus_orbit = get_orbit_ellipse_simple(107, 109, 108)
-    svg_doc.add(venus_orbit)
-
-    earth_orbit = get_orbit_ellipse_simple(147, 152, 150)
-    svg_doc.add(earth_orbit)
-
-    mars_orbit = get_orbit_ellipse_simple(207, 249, 228)
-    svg_doc.add(mars_orbit)
-
-    jupiter_orbit = get_orbit_ellipse_simple(740, 817, 779)
-    svg_doc.add(jupiter_orbit)
-
-    saturn_orbit = get_orbit_ellipse_simple(1353, 1515, 1434)
-    svg_doc.add(saturn_orbit)
-
-    uranus_orbit = get_orbit_ellipse_simple(2741, 3004, 2875)
-    svg_doc.add(uranus_orbit)
-
-    neptune_orbit = Orbit("neptune", 0.008678, 4_495_060_000, 6.43, 131.784, 276.336, 0)
-    print(neptune_orbit)
-    neptune_orbit_drawing = get_orbit_ellipse(neptune_orbit)
-    svg_doc.add(neptune_orbit_drawing)
+    for solar_orbit in solar_system_orbits:
+        print(solar_orbit)
+        orbit_drawing = get_orbit_ellipse(solar_orbit)
+        svg_doc.add(orbit_drawing)
 
     svg_doc.save()
