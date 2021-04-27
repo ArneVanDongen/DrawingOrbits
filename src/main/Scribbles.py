@@ -1,5 +1,7 @@
 import svgwrite
 from svgwrite import shapes
+from svgwrite.params import Parameter
+
 from Orbit import Orbit
 from Orbit import solar_system_orbits
 
@@ -20,12 +22,26 @@ def get_orbit_ellipse_simple(perihelion, aphelion, semimajor_axis):
 def get_orbit_ellipse(orbit_object: Orbit):
     orbit_center = ((image_center[0] + (orbit_object.semimajor_axis - orbit_object.get_periapsis()) * scale),
                     image_center[1])
-    orbit = svgwrite.shapes.Ellipse(orbit_center,
-                                    (orbit_object.get_apoapsis() * scale, orbit_object.get_periapsis() * scale))
-    orbit.fill('none')
-    orbit.stroke('rgb(190, 190, 190)', orbit_stroke_width)
-    orbit.rotate(orbit_object.longitude_of_the_ascending_node, image_center)
-    return orbit
+
+    # Semimajor axis and eccentricity
+    orbit_ellipse = svgwrite.shapes.Ellipse((0, 0),
+                                            (orbit_object.get_apoapsis() * scale, orbit_object.get_periapsis() * scale))
+
+    # longitude of the ascending node
+    orbit_ellipse.rotate(orbit_object.longitude_of_the_ascending_node, image_center)
+
+    # replacing to the center
+    orbit_ellipse.translate(orbit_center[0], orbit_center[1])
+
+    # inclination
+    inclination_scale = 1 - abs(orbit_object.inclination) / 90
+    print("Scaling x by {} due to inclination of {}".format(inclination_scale, orbit_object.inclination))
+    orbit_ellipse.scale(inclination_scale, 1)
+
+    # graphics
+    orbit_ellipse.fill('none')
+    orbit_ellipse.stroke('rgb(190, 190, 190)', orbit_stroke_width, opacity=0.6)
+    return orbit_ellipse
 
 
 if __name__ == '__main__':
